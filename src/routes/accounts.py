@@ -41,6 +41,7 @@ async def add_account(account: Account,db: Annotated[aiomysql.Connection, Depend
                await create_account(account=account, connection=connection)
                return {"details": "Account created successfully"}
           except Exception as e:
+               print(e)
                raise HTTPException(detail="Unable to create account for user",
                                     status_code=status.HTTP_400_BAD_REQUEST)
           
@@ -131,4 +132,45 @@ async def unlock_saved_funds(id: int, db: Annotated[aiomysql.Connection, Depends
                return {"detail": "Savings unlocked"}
           except Exception as e:
                raise HTTPException(detail="Unable to unlock savings",
+                                    status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.get("/loan")
+async def get_loans(account: int, db: Annotated[aiomysql.Connection, Depends(get_db)],
+                     user: Annotated[User, Depends(authenticate)]):
+     
+     async with db as connection:
+          try:
+               return await fetch_loans(account,connection=connection)
+          except Exception as e:
+               raise HTTPException(detail="Unable to fetch your loans at this time!",
+                                    status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.post("/loan")
+async def add_loan(account: int, amount: float, db: Annotated[aiomysql.Connection, Depends(get_db)],
+                    user: Annotated[User, Depends(authenticate)]):
+     async with db as connection:
+          try:
+               if amount < 100:
+                    raise Exception()
+               await take_loan(account, amount=amount, connection=connection)
+               return {"details": "Loan request successful"}
+          except Exception as e:
+               # print(e)
+               raise HTTPException(detail="Unable to process your loan application at this moment",
+                                    status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.get("/loan/repay")
+async def repay(loan: int, db: Annotated[aiomysql.Connection, Depends(get_db)], 
+                user: Annotated[User, Depends(authenticate)]):
+     
+     async with db as connection:
+          try:
+               await repay_loan(loan, connection=connection)
+               return {"detail": "Loan payback successful"}
+          except Exception as e:
+               print(e)
+               raise HTTPException(detail="Unable to repay loan",
                                     status_code=status.HTTP_400_BAD_REQUEST)

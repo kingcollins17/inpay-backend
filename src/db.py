@@ -3,7 +3,8 @@ import aiomysql
 from typing import Any, Dict, Union, List
 import asyncio
 import random
-from .models import Account, Savings, Transaction, User
+# from models import Account, Loan, Savings, Transaction, User
+from .models import Account, Loan, Savings, Transaction, User
 
 
 db_credentials  = {'user': 'root', 'host': 'localhost', 'port': 3306, 
@@ -166,6 +167,29 @@ async def add_savings(account_id: int, *, amount: float, connection: aiomysql.Co
           await cursor.execute(query="INSERT INTO savings (amount, account_id) VALUES (%s,%s)",args = (amount, account_id))
      await connection.commit()
 
+
+async def take_loan(account_id: int, *, amount: float, connection: aiomysql.Connection):
+     async with connection.cursor() as cursor:
+          await cursor.execute(query="INSERT INTO loans(amount, account_id) VALUES (%s,%s)",
+                                args=(amount, account_id))
+     
+     await connection.commit()
+
+async def repay_loan(loan_id: int, *, connection: aiomysql.Connection):
+     async with connection.cursor() as cursor:
+          await cursor.execute(query=f"DELETE FROM loans WHERE id = {loan_id}")
+     
+     await connection.commit()
+
+
+
+async def fetch_loans(account_id: int, *, connection: aiomysql.Connection):
+     async with connection.cursor(aiomysql.DictCursor) as cursor:
+          await cursor.execute(query=f"SELECT * FROM loans WHERE account_id = {account_id}")
+          res= await cursor.fetchall()
+          return [Loan(**value) for value in res]
+     
+
 def _hash_session(count: int):
      digits = 'abcdef1234567890ABCDEF'
      res = ''
@@ -175,25 +199,29 @@ def _hash_session(count: int):
      return res
 
 # async def main():
-#      async with create_connection(db_credentials) as conn:
-#           # await create_user(User(name='Melanie Hickson', email='hickson@yahoo.com', password='gene'), connection= conn)
-#           # await create_account(account = Account(name='My second test account', pin=3456, user_id=1) , connection=conn)
-#           # await delete_account(8, connection=conn)
-#           # await delete_user(8, connection= conn)
-#           # await change_password(7, new_password='strongerpwd', connection=conn)
-#           # await change_pin(7, new_pin=2001, connection=conn)
-#           # await deposit(2, amount=1000, connection=conn)
-#           # # print(generate_hash(32))
-#           # res = await transfer_funds(Transaction(sender_id=1, recipient_id=2, amount=150), connection=conn)
-#           # print(res)
-#           # print(await withdraw_funds(2, amount=100, connection=conn))
-#           # print(await fetch_account(user_id = 1, connection=conn))
-#           # print(await find_user(email='mikerob@gmail.com', connection=conn))
-#           # print(await fetch_outgoing_history(1, connection=conn))
-#           # print(await fetch_incoming_history(2, connection=conn))
-#           # # print(generate_account_no())
-#           # await add_savings(2, amount = 400, connection=conn)
-#           # await unlock_savings(2, connection=conn)
-#           # print(await fetch_savings(2, connection=conn))
-#           pass
+     # async with create_connection(db_credentials) as conn:
+          # await create_user(User(name='Melanie Hickson', email='hickson@yahoo.com', password='gene'), connection= conn)
+          # await create_account(account = Account(name='Test Account', pin=3456, user_id=1) , connection=conn)
+          # await delete_account(8, connection=conn)
+          # await delete_user(8, connection= conn)
+          # await change_password(7, new_password='strongerpwd', connection=conn)
+          # await change_pin(7, new_pin=2001, connection=conn)
+          # await deposit(2, amount=1000, connection=conn)
+          # print(generate_hash(32))
+          # res = await transfer_funds(Transaction(sender_id=3, recipient_id=1, amount=1150), connection=conn)
+          # print(res)
+          # print(await withdraw_funds(2, amount=100, connection=conn))
+          # print(await fetch_account(user_id = 1, connection=conn))
+          # print(await find_user(email='mikerob@gmail.com', connection=conn))
+          # print(await fetch_outgoing_history(1, connection=conn))
+          # print(await fetch_incoming_history(2, connection=conn))
+          # print(generate_account_no())
+          # await add_savings(2, amount = 400, connection=conn)
+          # await unlock_savings(2, connection=conn)
+          # print(await fetch_savings(2, connection=conn))
+          # await take_loan(4, amount=200000, connection=conn)
+          # print(await fetch_loans(4, connection=conn))
+          # await repay_loan(3, connection=conn)
+          # pass
 # asyncio.run(main())
+

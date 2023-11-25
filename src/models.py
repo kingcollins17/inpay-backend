@@ -13,9 +13,10 @@ class Account(BaseModel):
      id: Union[int, None] = None
      name: Union[str, None] =  None
      account_no: Union[str, None] = None
-     balance: float | None = None
+     balance: Union[float, None] = None
      pin: int
      user_id: int
+     level: Union[float, None] = None
 
 class Transaction(BaseModel):
      id: Union[int, None] = None
@@ -23,9 +24,13 @@ class Transaction(BaseModel):
      amount: float
      sender_id: int
      recipient_id: int
+     date: Union[datetime.datetime, None] = None
 
 class Savings(BaseModel):
      id: Union[int, None]  = None
      amount: float
      date: Union[datetime.datetime, None]
      account_id: int
+
+class Loan(Savings):
+     pass

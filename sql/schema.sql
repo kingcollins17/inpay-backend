@@ -19,13 +19,15 @@ CREATE TABLE
      IF NOT EXISTS `accounts` (
           `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
           `name` VARCHAR(255) NOT NULL UNIQUE,
-          `account_no` CHAR(10) NOT NULL UNIQUE ,
+          `account_no` CHAR(10) NOT NULL UNIQUE,
           `balance` DECIMAL(20, 2) NOT NULL DEFAULT 10.50 CHECK(`balance` > 10.0),
+          `level` DECIMAL(10,6) NOT NULL DEFAULT 0.000005,
           `pin` INT(4) NOT NULL,
           `user_id` INT UNSIGNED NOT NULL,
           CONSTRAINT `fk_accounts_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
           PRIMARY KEY `pk_id` (`id`)
      ) ENGINE = InnoDB;
+
 
 CREATE TABLE
      IF NOT EXISTS `transactions` (
@@ -34,6 +36,7 @@ CREATE TABLE
           `sender_id` INT UNSIGNED NOT NULL,
           `recipient_id` INT UNSIGNED NOT NULL,
           `amount` DECIMAL(10, 2) NOT NULL,
+          `date` DATETIME NOT NULL DEFAULT NOW(),
           PRIMARY KEY `pk_id` (`id`),
           FOREIGN KEY (`sender_id`) REFERENCES `inpay`.`accounts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
           FOREIGN KEY (`recipient_id`) REFERENCES `inpay`.`accounts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -49,6 +52,50 @@ CREATE TABLE IF NOT EXISTS `savings` (
   FOREIGN KEY (`account_id`) REFERENCES `inpay`.`accounts`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB;
 
+
+
+CREATE TABLE IF NOT EXISTS `loans` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `amount` DECIMAL(8,2) NOT NULL,
+  `date` DATETIME NOT NULL DEFAULT NOW(),
+  `account_id` INT UNSIGNED NOT NULL,
+  PRIMARY KEY `pk_id`(`id`),
+  FOREIGN KEY (`account_id`) REFERENCES `inpay`.`accounts`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB;
+
+
+DROP TRIGGER IF EXISTS `take_loan`;
+DELIMITER $$
+
+CREATE TRIGGER `take_loan` AFTER INSERT ON `loans` FOR EACH ROW
+BEGIN
+     
+     UPDATE `accounts` SET
+       `balance` = `balance` + NEW.amount
+     WHERE `id` = NEW.account_id;
+END $$
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS `repay_loan`;
+DELIMITER $$
+CREATE TRIGGER `repay_loan` BEFORE DELETE ON `loans` FOR EACH ROW
+BEGIN
+     
+     DECLARE `bal` DECIMAL;
+     SELECT `balance` INTO `bal` FROM `accounts` WHERE `id` = OLD.account_id;
+     
+     
+     IF `bal` < OLD.amount THEN
+          SIGNAL SQLSTATE '45000'
+          SET MESSAGE_TEXT = 'Insufficient funds to pay back loan';
+     END IF;
+          
+     UPDATE `accounts` SET
+       `balance` = `balance` - OLD.amount
+     WHERE `id` = OLD.account_id;
+     
+END $$
+DELIMITER ;
 
 
 DROP TRIGGER IF EXISTS `transact`;
@@ -68,7 +115,8 @@ BEGIN
      END IF;
      
      UPDATE `accounts` SET
-       `balance` = `sender_balance` - NEW.amount
+       `balance` = `sender_balance` - NEW.amount,
+       `level` = `level` + (NEW.amount * 0.000015)
      WHERE `id` = NEW.sender_id;
 
      UPDATE `accounts` SET

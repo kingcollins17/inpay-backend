@@ -19,7 +19,8 @@
 -- INSERT INTO
 --      `transactions` (`hash`, `sender_id`, `recipient_id`, `amount`)
 -- VALUES
---      ('CB444782BDC6235D5AC3188EBC5463AC', '1', '2', 2.50);
+--      ('CB444782BDC6233D5AC3188EBC5463AD', '3', '2', 2000.50);
 
 
-INSERT INTO `savings` (`amount`,`account_id`) VALUES ('2.0', '1');
+INSERT INTO `savings` (`amount`,`account_id`) VALUES (35000, '3');
+-- INSERT INTO `loans` (`amount`, `account_id`) VALUES ( 10000, 3);
