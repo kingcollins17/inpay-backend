@@ -150,14 +150,14 @@ async def fetch_savings(account_id: int, *, connection: aiomysql.Connection):
 
 async def fetch_outgoing_history(account_id: int, *, connection: aiomysql.Connection):
      async with connection.cursor(aiomysql.DictCursor) as cursor:
-           await cursor.execute(query="SELECT transactions.hash as session_id, transactions.amount, transactions.recipient_id, accounts.name as recipient FROM transactions LEFT JOIN accounts ON transactions.recipient_id = accounts.id WHERE transactions.sender_id = %s", args=(account_id,))
+           await cursor.execute(query="SELECT transactions.hash as session_id, transactions.amount, transactions.recipient_id, transactions.date, accounts.name as recipient FROM transactions LEFT JOIN accounts ON transactions.recipient_id = accounts.id WHERE transactions.sender_id = %s", args=(account_id,))
 
      return await cursor.fetchall()
 
 
 async def fetch_incoming_history(account_id: int, *, connection: aiomysql.Connection):
      async with connection.cursor(aiomysql.DictCursor) as cursor:
-          await cursor.execute(query="SELECT transactions.hash as session_id, transactions.amount, transactions.sender_id, accounts.name as sender FROM transactions LEFT JOIN accounts ON transactions.sender_id = accounts.id WHERE transactions.recipient_id = %s", args=(account_id))
+          await cursor.execute(query="SELECT transactions.hash as session_id, transactions.amount, transactions.sender_id, transactions.date, accounts.name as sender FROM transactions LEFT JOIN accounts ON transactions.sender_id = accounts.id WHERE transactions.recipient_id = %s", args=(account_id))
 
      return await cursor.fetchall()
 
