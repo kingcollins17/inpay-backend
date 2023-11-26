@@ -9,9 +9,10 @@ from .routes.admin import router as admin_router
 
 
 app = FastAPI()
+@app.get('/')
+async def index(user: Annotated[User, Depends(authenticate)]) -> User:
+     return user
+
 app.include_router(auth_router, prefix="/auth")
 app.include_router(account_router, prefix="/accounts")
 app.include_router(admin_router, prefix="/admin")
-@app.get('/')
-async def index(user: Annotated[User, Depends(authenticate)]):
-     return user

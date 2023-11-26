@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.get("/")
 async def get_accounts(db: Annotated[aiomysql.Connection, Depends(get_db)], 
-                       user: Annotated[User, Depends(authenticate)]):
+                       user: Annotated[User, Depends(authenticate)]) -> List[Account]:
      async with db as connection:
           try:
                return await fetch_account(user.id, connection=connection) # type: ignore
@@ -21,7 +21,8 @@ async def get_accounts(db: Annotated[aiomysql.Connection, Depends(get_db)],
 
 
 @router.get("/find")
-async def search_account(account: str,db: Annotated[aiomysql.Connection, Depends(get_db)]):
+async def search_account(account: str,
+                         db: Annotated[aiomysql.Connection, Depends(get_db)]) -> Account:
      async with db as connection:
           try:
                res = await find_account(account, connection=connection)
@@ -35,7 +36,7 @@ async def search_account(account: str,db: Annotated[aiomysql.Connection, Depends
 
 @router.post("/create")
 async def add_account(account: Account,db: Annotated[aiomysql.Connection, Depends(get_db)],
-                       user: Annotated[User, Depends(authenticate)]):
+                       user: Annotated[User, Depends(authenticate)]) -> Dict[str, str]:
      async with db as connection:
           try:
                await create_account(account=account, connection=connection)
@@ -115,7 +116,7 @@ async def save_funds(id: int, amount: float, db: Annotated[aiomysql.Connection, 
           
 @router.get("/save/all")
 async def fetch_saved_funds(account: int, db: Annotated[aiomysql.Connection, Depends(get_db)],
-                             user: Annotated[User, Depends(authenticate)]):
+                             user: Annotated[User, Depends(authenticate)]) -> List[Savings]:
      async with db as connection:
           try:
                return await fetch_savings(account, connection=connection)
@@ -137,7 +138,7 @@ async def unlock_saved_funds(id: int, db: Annotated[aiomysql.Connection, Depends
 
 @router.get("/loan")
 async def get_loans(account: int, db: Annotated[aiomysql.Connection, Depends(get_db)],
-                     user: Annotated[User, Depends(authenticate)]):
+                     user: Annotated[User, Depends(authenticate)]) -> List[Loan]:
      
      async with db as connection:
           try:
