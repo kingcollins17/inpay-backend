@@ -15,6 +15,7 @@ async def remove_user(db: Annotated[aiomysql.Connection, Depends(get_db)],
                await delete_user(user.id, connection=connection) # type: ignore
                return {"details": "User deleted successfully"}
           except Exception as e:
+               print(e)	
                raise HTTPException(detail=f"Unable to delete user {user.name} at this moment", 
                                    status_code=status.HTTP_400_BAD_REQUEST)
 

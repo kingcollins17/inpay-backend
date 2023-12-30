@@ -5,10 +5,10 @@ import asyncio
 import random
 # from models import Account, Loan, Savings, Transaction, User
 from .models import Account, Loan, Savings, Transaction, User
+from ._config import db_credentials
 
 
-db_credentials  = {'user': 'root', 'host': 'localhost', 'port': 3306, 
-                'password': 'mysqlking@02', 'db': 'inpay'}
+
 
 
 def get_db():
@@ -162,6 +162,12 @@ async def fetch_incoming_history(account_id: int, *, connection: aiomysql.Connec
      return await cursor.fetchall()
 
 
+async def clear_history(account_id: int, connection: aiomysql.Connection):
+     async with connection.cursor() as cursor:
+          await cursor.execute(query=f"DELETE FROM transactions WHERE sender_id = {account_id} OR recipient_id = {account_id}")
+     await connection.commit()
+
+     
 async def add_savings(account_id: int, *, amount: float, connection: aiomysql.Connection):
      async with connection.cursor() as cursor:
           await cursor.execute(query="INSERT INTO savings (amount, account_id) VALUES (%s,%s)",args = (amount, account_id))

@@ -39,4 +39,7 @@ def authenticate(token: Annotated[str, Depends(oauth)]):
      except ExpiredSignatureError as e:
           raise HTTPException(detail="Token has expired!",
                                status_code=status.HTTP_403_FORBIDDEN)
+     except JWTError as _:
+          raise HTTPException(detail="Token is Invalid!",
+                               status_code=status.HTTP_403_FORBIDDEN)
      

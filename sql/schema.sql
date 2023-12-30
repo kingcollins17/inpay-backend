@@ -24,7 +24,7 @@ CREATE TABLE
           `level` DECIMAL(10,6) NOT NULL DEFAULT 0.000005,
           `pin` INT(4) NOT NULL,
           `user_id` INT UNSIGNED NOT NULL,
-          CONSTRAINT `fk_accounts_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+          CONSTRAINT `fk_accounts_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
           PRIMARY KEY `pk_id` (`id`)
      ) ENGINE = InnoDB;
 
