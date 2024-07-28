@@ -1,5 +1,6 @@
 # Inpay REST API
-
+### Check out the Live API docs at 
+ - [Inpay REST API documentation](https://inpay-backend.onrender.com)
 ## Overview
 Inpay is a mobile wallet (e-wallet) application developed with FastAPI, a modern and fast web framework for Python. It offers features like transfers, withdrawals, savings, loans, settings, and account preferences. Authentication is handled using JSON Web Tokens (JWT).
 
