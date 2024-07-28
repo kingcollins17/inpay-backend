@@ -10,6 +10,7 @@ router  = APIRouter()
 @router.delete("/user")
 async def remove_user(db: Annotated[aiomysql.Connection, Depends(get_db)],
                        user: Annotated[User, Depends(authenticate)]):
+     """Requires authorization header. Endpoint for deleting user account"""
      async with db as connection:
           try:
                await delete_user(user.id, connection=connection) # type: ignore
@@ -23,6 +24,7 @@ async def remove_user(db: Annotated[aiomysql.Connection, Depends(get_db)],
 @router.delete("/account")
 async def remove_account(account: int, db: Annotated[aiomysql.Connection, Depends(get_db)],
                           user: Annotated[User, Depends(authenticate)]):
+     """Deletes the wallet account of associated user"""
      async with db as connection:
           try:
                await delete_account(account, connection=connection)
@@ -35,6 +37,7 @@ async def remove_account(account: int, db: Annotated[aiomysql.Connection, Depend
 @router.put("/password")
 async def modify_password(password: str, db: Annotated[aiomysql.Connection, Depends(get_db)],
                            user: Annotated[User, Depends(authenticate)]):
+     """Changes the users password"""
      async with db as connection:
           try:
                await change_password(user.id, new_password=hash_password(password), connection=connection) # type: ignore
@@ -47,6 +50,7 @@ async def modify_password(password: str, db: Annotated[aiomysql.Connection, Depe
 async def modify_pin(account: int, pin: int,
                       db: Annotated[aiomysql.Connection, Depends(get_db)], 
                      user: Annotated[User, Depends(authenticate)]):
+     """Change users transaction pin"""
      async with db as connection:
           try:
                await change_pin(account, new_pin=pin, connection=connection)

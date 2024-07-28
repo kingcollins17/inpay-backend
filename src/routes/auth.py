@@ -8,6 +8,7 @@ router = APIRouter()
 
 @router.post("/login")
 async def login_user(user: User, db: Annotated[aiomysql.Connection, Depends(get_db)]):
+     """Login a user"""
      async with db as conn:
           try:
                found_user = await find_user(user.email, connection=conn)
@@ -23,6 +24,7 @@ async def login_user(user: User, db: Annotated[aiomysql.Connection, Depends(get_
 
 @router.post("/register")
 async def register_user(user: User, db: Annotated[aiomysql.Connection, Depends(get_db)]):
+     """Register a new user account"""
      async with db as connection:
           try:
                await create_user(User(name=user.name, email=user.email,

@@ -12,6 +12,7 @@ router = APIRouter()
 @router.get("/")
 async def get_accounts(db: Annotated[aiomysql.Connection, Depends(get_db)], 
                        user: Annotated[User, Depends(authenticate)]) -> List[Account]:
+     """Fetch accounts"""
      async with db as connection:
           try:
                return await fetch_account(user.id, connection=connection) # type: ignore
@@ -23,6 +24,7 @@ async def get_accounts(db: Annotated[aiomysql.Connection, Depends(get_db)],
 @router.get("/find")
 async def search_account(account: str,
                          db: Annotated[aiomysql.Connection, Depends(get_db)]) -> Account:
+     """Find an account"""
      async with db as connection:
           try:
                res = await find_account(account, connection=connection)
@@ -37,6 +39,7 @@ async def search_account(account: str,
 @router.post("/create")
 async def add_account(account: Account,db: Annotated[aiomysql.Connection, Depends(get_db)],
                        user: Annotated[User, Depends(authenticate)]) -> Dict[str, str]:
+     """Create a new user wallet account associated with the calling user. Requires authentication"""
      async with db as connection:
           try:
                await create_account(account=account, connection=connection)
@@ -50,6 +53,7 @@ async def add_account(account: Account,db: Annotated[aiomysql.Connection, Depend
 @router.get("/deposit")
 async def deposit_funds(id: int, amount: float,
                          db: Annotated[aiomysql.Connection, Depends(get_db)], user: Annotated[User, Depends(get_db)]):
+     """Endpoint for depositing funds into an account"""     
      async with db as connection:
           try:
                await deposit(id, amount=amount, connection=connection)
@@ -63,6 +67,8 @@ async def deposit_funds(id: int, amount: float,
 @router.get("/withdraw")
 async def withdraw(id:int, amount: float, db: Annotated[aiomysql.Connection, Depends(get_db)], 
                          user: Annotated[User, Depends(authenticate)]):
+     
+     """Withdraw funds from users account"""
      async with db as connection:
           try:
                withdrawn = await withdraw_funds(id, amount=amount, connection=connection)
@@ -77,6 +83,7 @@ async def withdraw(id:int, amount: float, db: Annotated[aiomysql.Connection, Dep
 async def transfer(transaction: Transaction, 
                    db: Annotated[aiomysql.Connection, Depends(get_db)],
                     user: Annotated[User, Depends(authenticate)]):
+     """Transfer funds to another user in using Inpay"""
      async with db as connection:
           try:
                transfered = await transfer_funds(transaction=transaction, connection=connection)
@@ -91,6 +98,7 @@ async def transfer(transaction: Transaction,
 @router.get("/history")
 async def get_history(id: int, out: bool, db: Annotated[aiomysql.Connection, Depends(get_db)], 
                       user: Annotated[User, Depends(authenticate)]):
+     """Fetches all transaction history"""
      async with db as connection:
           try:
                if out == True:
@@ -105,6 +113,7 @@ async def get_history(id: int, out: bool, db: Annotated[aiomysql.Connection, Dep
 @router.get("/save")
 async def save_funds(id: int, amount: float, db: Annotated[aiomysql.Connection, Depends(get_db)], 
                      user: Annotated[User, Depends(authenticate)]):
+     """Save amount of funds in your savings"""
      async with db as connection:
           try:
                await add_savings(id, amount=amount, connection=connection)
@@ -117,6 +126,7 @@ async def save_funds(id: int, amount: float, db: Annotated[aiomysql.Connection, 
 @router.get("/save/all")
 async def fetch_saved_funds(account: int, db: Annotated[aiomysql.Connection, Depends(get_db)],
                              user: Annotated[User, Depends(authenticate)]) -> List[Savings]:
+     """Fetches all user savings"""
      async with db as connection:
           try:
                return await fetch_savings(account, connection=connection)
@@ -127,6 +137,7 @@ async def fetch_saved_funds(account: int, db: Annotated[aiomysql.Connection, Dep
 @router.get("/unlock")
 async def unlock_saved_funds(id: int, db: Annotated[aiomysql.Connection, Depends(get_db)],
                               user: Annotated[User, Depends(authenticate)]):
+     """Unlock some savings"""
      async with db as connection:
           try:
                await unlock_savings(id,connection=connection)
@@ -139,7 +150,7 @@ async def unlock_saved_funds(id: int, db: Annotated[aiomysql.Connection, Depends
 @router.get("/loan")
 async def get_loans(account: int, db: Annotated[aiomysql.Connection, Depends(get_db)],
                      user: Annotated[User, Depends(authenticate)]) -> List[Loan]:
-     
+     """Fetches users loans"""
      async with db as connection:
           try:
                return await fetch_loans(account,connection=connection)
@@ -151,6 +162,7 @@ async def get_loans(account: int, db: Annotated[aiomysql.Connection, Depends(get
 @router.post("/loan")
 async def add_loan(account: int, amount: float, db: Annotated[aiomysql.Connection, Depends(get_db)],
                     user: Annotated[User, Depends(authenticate)]):
+     """Takes out a loan on behalf of the user"""
      async with db as connection:
           try:
                if amount < 100:
@@ -166,7 +178,7 @@ async def add_loan(account: int, amount: float, db: Annotated[aiomysql.Connectio
 @router.get("/loan/repay")
 async def repay(loan: int, db: Annotated[aiomysql.Connection, Depends(get_db)], 
                 user: Annotated[User, Depends(authenticate)]):
-     
+     """Repay borrowed loans. This will fail if user does not have sufficient balance in their account"""
      async with db as connection:
           try:
                await repay_loan(loan, connection=connection)
