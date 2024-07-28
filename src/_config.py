@@ -1,5 +1,5 @@
 # Whether app is in production mode
-production = False
+production = True
 
 db_credentials = {
     "user": "root",
