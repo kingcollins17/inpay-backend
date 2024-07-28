@@ -8,7 +8,7 @@ from .routes.accounts import router as account_router
 from .routes.admin import router as admin_router
 
 
-app = FastAPI()
+app = FastAPI(title='Inpay Restful api',redoc_url='/')
 @app.get('/')
 async def index(user: Annotated[User, Depends(authenticate)]) -> User:
      return user

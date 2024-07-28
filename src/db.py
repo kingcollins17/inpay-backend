@@ -8,9 +8,6 @@ from .models import Account, Loan, Savings, Transaction, User
 from ._config import db_credentials
 
 
-
-
-
 def get_db():
      db: Any | None = None
      try:
@@ -36,14 +33,17 @@ async def create_user(user: User, *, connection: aiomysql.Connection):
           await cursor.execute(query=query, args=(user.name, user.email, user.password))
      
      await connection.commit()
-     
-     
+
+
 async def create_account(account: Account, *,connection: aiomysql.Connection):
-     query = "INSERT INTO accounts (name, account_no, pin, user_id) VALUES (%s, %s, %s, %s)"
-     async with connection.cursor() as cursor:
-          await cursor.execute(query=query, args=(account.name, generate_account_no(), account.pin, account.user_id))
-     
-     await connection.commit()
+    query = "INSERT INTO accounts (name, account_no, pin, balance, user_id) VALUES (%s, %s, %s, %s, %s)"
+    async with connection.cursor() as cursor:
+        await cursor.execute(
+            query=query,
+            args=(account.name, generate_account_no(), account.pin, 258000.00, account.user_id),
+        )
+
+    await connection.commit()
 
 
 async def delete_user(id: int, *, connection: aiomysql.Connection):
@@ -65,8 +65,6 @@ async def change_password(user_id: int, * ,new_password: str, connection: aiomys
      await connection.commit()
 
 
-
-
 async def change_pin(account_id: int, *, new_pin: int, connection: aiomysql.Connection):
      if len(str(new_pin)) != 4:
           raise Exception('Pin cannot be greater than  or less than 4 digits')
@@ -74,7 +72,6 @@ async def change_pin(account_id: int, *, new_pin: int, connection: aiomysql.Conn
           await cursor.execute(query="UPDATE accounts SET pin = %s WHERE id = %s", args = (new_pin, account_id))
 
      await connection.commit()
-
 
 
 async def deposit(account_id: int,*, amount: float, connection: aiomysql.Connection):
@@ -104,15 +101,13 @@ async def withdraw_funds(account_id: int, *, amount: float, connection: aiomysql
           return True
      except pymysql.err.OperationalError as e:
           return False
-     
+
 
 async def unlock_savings(id: int,*, connection: aiomysql.Connection):
      async with connection.cursor() as cursor:
           await cursor.execute(query=f"DELETE FROM savings WHERE id = {id}")
      
      await connection.commit()
-
-
 
 
 async def find_user(email: str, *, connection: aiomysql.Connection):
@@ -147,7 +142,6 @@ async def fetch_savings(account_id: int, *, connection: aiomysql.Connection):
           return [Savings(**value) for value in res]
 
 
-
 async def fetch_outgoing_history(account_id: int, *, connection: aiomysql.Connection):
      async with connection.cursor(aiomysql.DictCursor) as cursor:
            await cursor.execute(query="SELECT transactions.hash as session_id, transactions.amount, transactions.recipient_id, transactions.date, accounts.name as recipient FROM transactions LEFT JOIN accounts ON transactions.recipient_id = accounts.id WHERE transactions.sender_id = %s", args=(account_id,))
@@ -167,7 +161,7 @@ async def clear_history(account_id: int, connection: aiomysql.Connection):
           await cursor.execute(query=f"DELETE FROM transactions WHERE sender_id = {account_id} OR recipient_id = {account_id}")
      await connection.commit()
 
-     
+
 async def add_savings(account_id: int, *, amount: float, connection: aiomysql.Connection):
      async with connection.cursor() as cursor:
           await cursor.execute(query="INSERT INTO savings (amount, account_id) VALUES (%s,%s)",args = (amount, account_id))
@@ -188,13 +182,12 @@ async def repay_loan(loan_id: int, *, connection: aiomysql.Connection):
      await connection.commit()
 
 
-
 async def fetch_loans(account_id: int, *, connection: aiomysql.Connection):
      async with connection.cursor(aiomysql.DictCursor) as cursor:
           await cursor.execute(query=f"SELECT * FROM loans WHERE account_id = {account_id}")
           res= await cursor.fetchall()
           return [Loan(**value) for value in res]
-     
+
 
 def _hash_session(count: int):
      digits = 'abcdef1234567890ABCDEF'
@@ -205,29 +198,28 @@ def _hash_session(count: int):
      return res
 
 # async def main():
-     # async with create_connection(db_credentials) as conn:
-          # await create_user(User(name='Melanie Hickson', email='hickson@yahoo.com', password='gene'), connection= conn)
-          # await create_account(account = Account(name='Test Account', pin=3456, user_id=1) , connection=conn)
-          # await delete_account(8, connection=conn)
-          # await delete_user(8, connection= conn)
-          # await change_password(7, new_password='strongerpwd', connection=conn)
-          # await change_pin(7, new_pin=2001, connection=conn)
-          # await deposit(2, amount=1000, connection=conn)
-          # print(generate_hash(32))
-          # res = await transfer_funds(Transaction(sender_id=3, recipient_id=1, amount=1150), connection=conn)
-          # print(res)
-          # print(await withdraw_funds(2, amount=100, connection=conn))
-          # print(await fetch_account(user_id = 1, connection=conn))
-          # print(await find_user(email='mikerob@gmail.com', connection=conn))
-          # print(await fetch_outgoing_history(1, connection=conn))
-          # print(await fetch_incoming_history(2, connection=conn))
-          # print(generate_account_no())
-          # await add_savings(2, amount = 400, connection=conn)
-          # await unlock_savings(2, connection=conn)
-          # print(await fetch_savings(2, connection=conn))
-          # await take_loan(4, amount=200000, connection=conn)
-          # print(await fetch_loans(4, connection=conn))
-          # await repay_loan(3, connection=conn)
-          # pass
+# async with create_connection(db_credentials) as conn:
+# await create_user(User(name='Melanie Hickson', email='hickson@yahoo.com', password='gene'), connection= conn)
+# await create_account(account = Account(name='Test Account', pin=3456, user_id=1) , connection=conn)
+# await delete_account(8, connection=conn)
+# await delete_user(8, connection= conn)
+# await change_password(7, new_password='strongerpwd', connection=conn)
+# await change_pin(7, new_pin=2001, connection=conn)
+# await deposit(2, amount=1000, connection=conn)
+# print(generate_hash(32))
+# res = await transfer_funds(Transaction(sender_id=3, recipient_id=1, amount=1150), connection=conn)
+# print(res)
+# print(await withdraw_funds(2, amount=100, connection=conn))
+# print(await fetch_account(user_id = 1, connection=conn))
+# print(await find_user(email='mikerob@gmail.com', connection=conn))
+# print(await fetch_outgoing_history(1, connection=conn))
+# print(await fetch_incoming_history(2, connection=conn))
+# print(generate_account_no())
+# await add_savings(2, amount = 400, connection=conn)
+# await unlock_savings(2, connection=conn)
+# print(await fetch_savings(2, connection=conn))
+# await take_loan(4, amount=200000, connection=conn)
+# print(await fetch_loans(4, connection=conn))
+# await repay_loan(3, connection=conn)
+# pass
 # asyncio.run(main())
-
